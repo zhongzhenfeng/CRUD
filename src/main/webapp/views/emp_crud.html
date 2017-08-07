@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Insert title here</title>
+		<!-- 第一部分：样式文件 -->
+		<!-- 1.默认主题文件 -->
+		<link rel="stylesheet" type="text/css" href="/EasyUICRUD/css/themes/default/easyui.css" />
+		
+		<!-- 2.图标的样式文件 -->
+		<link rel="stylesheet" type="text/css" href="/EasyUICRUD/css/themes/icon.css" />
+		
+		<!-- 第二部分：JavaScript库文件 -->
+		<!-- 1.jQuery的库文件——一定要比EasyUI的库文件先引入 -->
+		<script type="text/javascript" src="/EasyUICRUD/jQuery/jquery.min.js"></script>
+		
+		<!-- 2.EasyUI的主体库文件 -->
+		<script type="text/javascript" src="/EasyUICRUD/jQuery/jquery.easyui.min.js"></script>
+		
+		<!-- 3.本地化文件 -->
+		<script type="text/javascript" src="/EasyUICRUD/jQuery/easyui-lang-zh_CN.js"></script>
+		
+		<script type="text/javascript">
+			$(function(){
+				$("#openTabOneBtn").linkbutton({
+					iconCls:'icon-help',
+					onClick:function(){
+						$("#tt").tabs("select","Tab1");
+					}
+				});
+				
+				$("#openTabTwoBtn").linkbutton({
+					iconCls:'icon-filter',
+					onClick:function(){
+						//tabs("select","TabTwo")表示选中标题为TabTwo的选项卡面板
+						//tabs("getSelected")表示把刚刚选中的选项卡面板返回，返回的对象可以当做panel控件使用
+						//panel("refresh","/EasyUICRUD/remoteDataProvider")表示让panel远程加载数据
+						$("#tt").tabs("select","Tab2")
+								.tabs("getSelected")
+								.panel("refresh","/EasyUICRUD/remoteDataProvider");
+					}
+				});
+				
+				$("#openTabThreeBtn").linkbutton({
+					iconCls:'icon-man',
+					onClick:function(){
+						$("#tt").tabs("select","Tab3")
+								.tabs("getSelected")
+								.panel("refresh","/EasyUICRUD/remoteDataProvider");
+					}
+				});
+				
+				$("#empDataGridWithPage").datagrid({
+					url:"/EasyUICRUD/getEmpPageRemote",
+					fit:true,
+					pagination:true,
+					singleSelect:true,
+				    columns:[[
+				        {field:'empId',title:'员工编号'},    
+				        {field:'empName',title:'员工姓名'},    
+				        {field:'salary',title:'员工工资'}    
+				    ]],
+				    toolbar:[{
+				    	iconCls:'icon-add',
+				    	text:'添加员工信息',
+				    	handler:function(){
+				    		$("#win").window("open");
+				    		$("#ff").form({url:"/EasyUICRUD/saveEmployee"});
+				    	}
+				    },{
+				    	iconCls:'icon-remove',
+				    	text:'删除员工信息',
+				    	handler:function(){
+				    		var selectedRow = $("#empDataGridWithPage").datagrid("getSelected");
+				    		console.log(selectedRow);
+				    		
+				    		if(selectedRow == null) {
+				    			
+				    			$.messager.alert("CRUD练习","亲，你是不是忘了选中一条呢？你还想不想混了？","info");
+				    			
+				    		}else{
+				    			
+				    			$.messager.confirm("CRUD练习","亲，你真的要删除这一条吗？现在后悔还来得及！",function(result){
+				    				if(result) {
+				    					
+				    					var empId = selectedRow.empId;
+				    					
+				    					$.post("/EasyUICRUD/removeEmp/"+empId,function(){
+				    						$("#empDataGridWithPage").datagrid("reload");
+				    					});
+				    					
+				    				}else{
+				    					$.messager.show({
+				    						title:'CRUD练习',
+				    						msg:'你做出了一个正确的决定！',
+				    						timeout:3000,
+				    						showType:'slide'
+				    					});
+				    				}
+				    			});
+				    			
+				    		}
+				    		
+				    	}
+				    },{
+				    	iconCls:'icon-edit',
+				    	text:'编辑员工信息',
+				    	handler:function(){
+				    		
+				    		var selectedRow = $("#empDataGridWithPage").datagrid("getSelected");
+				    		
+				    		if(selectedRow == null) {
+				    			
+				    			$.messager.alert("CRUD练习","亲，你是不是忘了选中一条呢？你还想不想混了？","info");
+				    			
+				    		}else{
+				    			
+					    		$("#win").window("open");
+					    		$("#ff").form({url:"/EasyUICRUD/updateEmployee"}).form("load",selectedRow);
+				    		}
+				    		
+				    	}
+				    }]
+				});
+				
+				$("#win").window({
+					onClose:function(){
+						$("#ff").form("clear");
+					}
+				});
+				
+				$("#ff").form({
+					success:function(){
+						$("#empDataGridWithPage").datagrid("reload");
+					}
+				});
+				
+				$("#formSubmitBtn").linkbutton({
+					onClick:function(){
+						$("#ff").form("submit");
+						$("#win").window("close");
+						$("#ff").form("clear");
+					}
+				});
+				
+				$("#formtcancelBtn").linkbutton({
+					onClick:function(){
+						$("#win").window("close");
+						$("#ff").form("clear");
+					}
+				});
+
+			});
+		</script>
+	
+	</head>
+	
+	<body class="easyui-layout">
+	    <div data-options="region:'north',title:'North Title',split:true" style="height:100px; background-image: url('/EasyUICRUD/image/gril.jpg');"></div>   
+	    <div data-options="region:'south',title:'South Title',split:true" style="height:100px; text-align: center;">
+	    	&copy;版权归尚硅谷国际教育集团所有
+	    </div>   
+	    <div data-options="region:'west',title:'West',split:true" style="width:150px;">
+	    	<div id="aa" class="easyui-accordion"  data-options="fit:true">   
+	    		<div title="Title1" data-options="iconCls:'icon-save'" style="overflow:auto;padding:0px;">   
+	        	<a id="openTabOneBtn" class="easyui-linkbutton" style="width: 100%">打开一号选项卡</a>
+		    	<a id="openTabTwoBtn" class="easyui-linkbutton" style="width: 100%">打开二号选项卡</a>
+		    	<a id="openTabThreeBtn" class="easyui-linkbutton" style="width: 100%">打开三号选项卡</a>
+    		</div>   
+		    <div title="Title2" data-options="iconCls:'icon-reload'" style="padding:0px;">   
+		        	该模块子项还没开发    
+		    </div>   
+		    <div title="Title3" data-options="iconCls:'icon-remove'">   
+		        	该模块子项还没开发 
+		    </div>   
+		</div>  
+	    
+	    </div>   
+	    <div data-options="region:'center',title:'center title'" style="padding:5px;background:#eee;">
+	    	<div id="tt" class="easyui-tabs" data-options="fit:true">   
+		    	<div title="Tab1">   
+		        	<table id="empDataGridWithPage"></table>    
+			    </div>   
+			    <div title="Tab2" data-options="loadingMessage:'正在加载远程数据...'" style="font-size: 50px;font-family: 华文彩云;">贰号选项卡的内容</div>   
+			    <div title="Tab3" data-options="loadingMessage:'正在加载远程数据...'" style="font-size: 50px;font-family: 华文彩云;">叁号选项卡的内容</div>
+			</div> 
+	    </div> 
+	    
+	    <div id="win" class="easyui-window" data-options="closed:true,modal:true" title="员工信息" style="width:300px;height:250px;text-align: center;">   
+		    <form id="ff" method="post" style="padding-top: 30px;">   
+			    <div>   
+			        <label for="empId">员工编号：</label>   
+			        <input type="text" name="empId" readonly="readonly"/>
+			    </div><br/>
+			    <div>   
+			        <label for="empName">员工姓名：</label>   
+			        <input class="easyui-validatebox" type="text" name="empName" data-options="required:true" />   
+			    </div><br/> 
+			    <div>   
+			        <label for="salary">员工工资：</label>   
+			        <input class="easyui-validatebox" type="text" name="salary" />   
+			    </div><br> 
+			    <a id="formSubmitBtn" class="easyui-linkbutton" data-options="iconCls:'icon-save'">保存</a>&nbsp;&nbsp;
+			    <a id="formtcancelBtn" class="easyui-linkbutton" data-options="iconCls:'icon-cancel'">取消</a> 
+			</form>    
+		</div>  
+	</body>  
+</html>
